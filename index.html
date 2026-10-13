@@ -112,8 +112,12 @@ const ua = navigator.userAgent;
 const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
-const preName = (params.get("c")||"").trim();
-const preType = (params.get("t")||"").toLowerCase();
+// Short links: ?Sarah (new system) or ?Sarah-up (upgrade). Older ?c=Sarah&t=new links still work.
+const rawQ = decodeURIComponent(location.search.slice(1).replace(/\+/g," "));
+const shortForm = rawQ && !rawQ.includes("=");
+const shortMatch = shortForm ? rawQ.match(/^(.*?)(?:-(up|upgrade|new))?$/i) : null;
+const preName = shortMatch ? shortMatch[1].trim() : (params.get("c")||"").trim();
+const preType = shortMatch ? (shortMatch[2]||"new").toLowerCase() : (params.get("t")||"").toLowerCase();
 
 let state = { me:"", type:"new", friends:[] };
 const KEY = "refdraft:" + preName.toLowerCase();

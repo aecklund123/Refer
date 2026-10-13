@@ -49,7 +49,7 @@ const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 let type = "new", edited = false;
 const $ = id => document.getElementById(id);
 const base = location.href.replace(/send\.html.*$/,"");
-function link(){ const n=$("cn").value.trim().split(/\s+/)[0]||""; return base + "?c=" + encodeURIComponent(n) + "&t=" + type; }
+function link(){ const n=($("cn").value.trim().split(/\s+/)[0]||"").replace(/[^A-Za-z'-]/g,""); return base + "?" + encodeURIComponent(n) + (type==="up" ? "-up" : ""); }
 function draft(){ const n=$("cn").value.trim().split(/\s+/)[0]||"there"; return `Hey ${n}, it's Andrew. Thanks again for going with Vivint! Here's that referral page I mentioned. $5 for every friend you text and $200 for every one who gets a system: ${link()}`; }
 function render(){
   if(!edited) $("msg").value = draft();
