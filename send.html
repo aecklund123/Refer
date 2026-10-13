@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Send a Referral Link</title>
+<style>
+:root{--bg:#f3f5f4;--surface:#fff;--ink:#14211f;--muted:#5b6b67;--line:#d9e0dd;--brand:#0f4c45;--brand-ink:#fff;--ok:#1f7a4d;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--bg:#0d1514;--surface:#15201e;--ink:#e8efed;--muted:#9db0ab;--line:#2a3a37;--brand:#5fc2b2;--brand-ink:#08201c;--ok:#6fd39e;color-scheme:dark}}
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:520px;margin:0 auto;padding-inline:16px;padding-block:24px 48px;display:flex;flex-direction:column;gap:16px}
+h1{margin:0;font-size:1.6rem}
+label{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:.9rem}
+input,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
+textarea{min-height:120px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg button{padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.btn{display:flex;justify-content:center;padding:15px;border-radius:12px;font:inherit;font-weight:700;text-decoration:none;border:1px solid var(--brand);background:var(--brand);color:var(--brand-ink);width:100%}
+.btn.ghost{background:transparent;color:var(--brand)}
+.btn.off{opacity:.45;pointer-events:none}
+.hint{font-size:.85rem;color:var(--muted)}
+.toast{font-size:.85rem;color:var(--ok);font-weight:600;min-height:1.2em}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Send a referral link</h1>
+  <p class="hint">For Andrew only. Fill this out right after an install and the customer's page opens with their name already on it.</p>
+  <label for="cn">Customer's name<input id="cn" placeholder="e.g. Sarah Jones" autocomplete="off"></label>
+  <label for="cp">Customer's cell<input id="cp" type="tel" inputmode="tel" placeholder="480-555-0123" autocomplete="off"></label>
+  <div class="seg" role="group" aria-label="Customer type">
+    <button type="button" id="tn" aria-pressed="true">New system</button>
+    <button type="button" id="tu" aria-pressed="false">Upgrade</button>
+  </div>
+  <label for="msg">Text to the customer<textarea id="msg"></textarea></label>
+  <a class="btn off" id="go" href="#">Text it to them</a>
+  <button type="button" class="btn ghost" id="copy">Copy text instead</button>
+  <p class="toast" id="toast"></p>
+</main>
+<script>
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+let type = "new", edited = false;
+const $ = id => document.getElementById(id);
+const base = location.href.replace(/send\.html.*$/,"");
+function link(){ const n=$("cn").value.trim().split(/\s+/)[0]||""; return base + "?c=" + encodeURIComponent(n) + "&t=" + type; }
+function draft(){ const n=$("cn").value.trim().split(/\s+/)[0]||"there"; return `Hey ${n}, it's Andrew. Thanks again for going with Vivint! Here's that referral page I mentioned. $5 for every friend you text and $200 for every one who gets a system: ${link()}`; }
+function render(){
+  if(!edited) $("msg").value = draft();
+  let d = $("cp").value.replace(/\D/g,""); if(d.length===10) d="1"+d;
+  const ok = d.length===11 && $("cn").value.trim();
+  $("go").classList.toggle("off", !ok);
+  $("go").href = ok ? "sms:+"+d+(isIOS?"&":"?")+"body="+encodeURIComponent($("msg").value) : "#";
+}
+$("cn").addEventListener("input", render); $("cp").addEventListener("input", render);
+$("msg").addEventListener("input", ()=>{ edited=true; render(); });
+function setT(t){ type=t; $("tn").setAttribute("aria-pressed",t==="new"); $("tu").setAttribute("aria-pressed",t==="up"); render(); }
+$("tn").onclick=()=>setT("new"); $("tu").onclick=()=>setT("up");
+$("copy").onclick=async()=>{ try{ await navigator.clipboard.writeText($("msg").value); $("toast").textContent="Copied."; }catch(e){ $("msg").select(); $("toast").textContent="Press and hold to copy."; } };
+render();
+</script>
+</body>
+</html>
